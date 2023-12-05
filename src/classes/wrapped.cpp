@@ -28,15 +28,11 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include <vector>
-
 #include <godot_cpp/classes/wrapped.hpp>
 
 #include <godot_cpp/variant/builtin_types.hpp>
 
 #include <godot_cpp/classes/object.hpp>
-
-#include <godot_cpp/core/class_db.hpp>
 
 namespace godot {
 
@@ -63,30 +59,5 @@ Wrapped::Wrapped(GodotObject *p_godot_object) {
 void postinitialize_handler(Wrapped *p_wrapped) {
 	p_wrapped->_postinitialize();
 }
-
-namespace internal {
-
-std::vector<EngineClassRegistrationCallback> &get_engine_class_registration_callbacks() {
-	static std::vector<EngineClassRegistrationCallback> engine_class_registration_callbacks;
-	return engine_class_registration_callbacks;
-}
-
-void add_engine_class_registration_callback(EngineClassRegistrationCallback p_callback) {
-	get_engine_class_registration_callbacks().push_back(p_callback);
-}
-
-void register_engine_class(const StringName &p_name, const GDExtensionInstanceBindingCallbacks *p_callbacks) {
-	ClassDB::_register_engine_class(p_name, p_callbacks);
-}
-
-void register_engine_classes() {
-	std::vector<EngineClassRegistrationCallback> &engine_class_registration_callbacks = get_engine_class_registration_callbacks();
-	for (EngineClassRegistrationCallback cb : engine_class_registration_callbacks) {
-		cb();
-	}
-	engine_class_registration_callbacks.clear();
-}
-
-} // namespace internal
 
 } // namespace godot

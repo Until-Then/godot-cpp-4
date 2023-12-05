@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  editor_plugin_registration.hpp                                        */
+/*  editor_plugin.cpp                                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,35 +28,34 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_EDITOR_PLUGIN_REGISTRATION_HPP
-#define GODOT_EDITOR_PLUGIN_REGISTRATION_HPP
+#include <godot_cpp/classes/editor_plugin.hpp>
 
-#include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/variant/string_name.hpp>
 
 namespace godot {
 
-class EditorPlugin;
-class StringName;
+Vector<StringName> EditorPlugins::plugin_classes;
 
-class EditorPlugins {
-private:
-	static Vector<StringName> plugin_classes;
+void EditorPlugins::add_plugin_class(const StringName &p_class_name) {
+	ERR_FAIL_COND_MSG(plugin_classes.find(p_class_name) != -1, vformat("Editor plugin already registered: %s", p_class_name));
+	plugin_classes.push_back(p_class_name);
+	internal::gdextension_interface_editor_add_plugin(p_class_name._native_ptr());
+}
 
-public:
-	static void add_plugin_class(const StringName &p_class_name);
-	static void remove_plugin_class(const StringName &p_class_name);
-	static void deinitialize(GDExtensionInitializationLevel p_level);
+void EditorPlugins::remove_plugin_class(const StringName &p_class_name) {
+	int index = plugin_classes.find(p_class_name);
+	ERR_FAIL_COND_MSG(index == -1, vformat("Editor plugin is not registered: %s", p_class_name));
+	plugin_classes.remove_at(index);
+	internal::gdextension_interface_editor_remove_plugin(p_class_name._native_ptr());
+}
 
-	template <class T>
-	static void add_by_type() {
-		add_plugin_class(T::get_class_static());
+void EditorPlugins::deinitialize(GDExtensionInitializationLevel p_level) {
+	if (p_level == GDEXTENSION_INITIALIZATION_EDITOR) {
+		for (const StringName &class_name : plugin_classes) {
+			internal::gdextension_interface_editor_remove_plugin(class_name._native_ptr());
+		}
+		plugin_classes.clear();
 	}
-	template <class T>
-	static void remove_by_type() {
-		remove_plugin_class(T::get_class_static());
-	}
-};
+}
 
 } // namespace godot
-
-#endif // GODOT_EDITOR_PLUGIN_REGISTRATION_HPP
