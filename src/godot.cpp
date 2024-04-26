@@ -219,6 +219,7 @@ typedef struct {
 } LegacyGDExtensionInterface;
 
 GDExtensionBool GDExtensionBinding::init(GDExtensionInterfaceGetProcAddress p_get_proc_address, GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
+#ifndef __PROSPERO__
 	// Make sure we weren't passed the legacy struct.
 	uint32_t *raw_interface = (uint32_t *)(void *)p_get_proc_address;
 	if (raw_interface[0] == 4 && raw_interface[1] == 0) {
@@ -228,6 +229,8 @@ GDExtensionBool GDExtensionBinding::init(GDExtensionInterfaceGetProcAddress p_ge
 		ERR_PRINT_EARLY("Cannot load a GDExtension built for Godot 4.1+ in Godot 4.0.");
 		return false;
 	}
+#endif
+
 
 	// Load the "print_error" function first (needed by the ERR_PRINT_EARLY() macro).
 	internal::gdextension_interface_print_error = (GDExtensionInterfacePrintError)p_get_proc_address("print_error");

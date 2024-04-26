@@ -38,6 +38,8 @@
 #if !defined(GDE_EXPORT)
 #if defined(_WIN32)
 #define GDE_EXPORT __declspec(dllexport)
+#elif defined(__PROSPERO__)
+#define GDE_EXPORT __declspec(dllexport)
 #elif defined(__GNUC__)
 #define GDE_EXPORT __attribute__((visibility("default")))
 #else
